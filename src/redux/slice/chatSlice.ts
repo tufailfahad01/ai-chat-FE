@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Chat, Message } from "../../types/chat";
+import type { Chat, DecodedToken, Message } from "../../types/chat";
 import api from "../../services/api";
+import { getDecodedToken } from "../../lib/utils";
 
 interface ChatState {
   chats: Chat[];
@@ -50,6 +51,40 @@ const chatSlice = createSlice({
     setCurrentChat: (state, action: PayloadAction<string>) => {
       state.currentChatId = action.payload;
     },
+
+    addMessage: (state, action: PayloadAction<any>) => {
+      const { chatId, ...message } = action.payload;
+
+      if (chatId) {
+        let chat = state.chats.find((chat) => chat.id === chatId);
+
+        if (!chat) {
+          const token = getDecodedToken() as DecodedToken;
+          chat = {
+            id: chatId,
+            userId: token.userId,
+            createdAt: new Date().toISOString(),
+            messages: [],
+          };
+          state.chats.push(chat);
+          state.currentChatId = chat.id;
+        }
+
+        // Add the user's message to the chat
+        chat.messages.push(message);
+      } else {
+        // If no chatId is provided, create a new chat
+        const token = getDecodedToken() as DecodedToken;
+        const newChat: any = {
+          id: new Date().toISOString(),
+          userId: token.userId,
+          createdAt: new Date().toISOString(),
+          messages: [message],
+        };
+        state.chats.push(newChat);
+        state.currentChatId = newChat.id;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -57,10 +92,37 @@ const chatSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
+
       .addCase(sendMessageToAI.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.chats.push(action?.payload?.data);
+        const { chatId, response } = action.payload.data;
+
+        // Find the chat in the state
+        let chat = state.chats.find((chat) => chat.id === chatId);
+
+        // If the chat doesn't exist (new chat), create it
+        if (!chat) {
+          const token = getDecodedToken() as DecodedToken;
+          chat = {
+            id: chatId || new Date().toISOString(), 
+            userId: token.userId,
+            createdAt: new Date().toISOString(),
+            messages: [],
+          };
+          state.chats.push(chat);
+          state.currentChatId = chat.id;
+        }
+
+        // Add the AI's response to the chat
+        chat.messages.push({
+          id: new Date().toISOString(),
+          chatId: chat.id,
+          sender: "ai",
+          content: response,
+          timestamp: new Date().toISOString(),
+          role: "user",
+        });
       })
       .addCase(sendMessageToAI.rejected, (state, action) => {
         state.loading = false;
@@ -73,5 +135,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setCurrentChat } = chatSlice.actions;
+export const { setCurrentChat, addMessage } = chatSlice.actions;
 export default chatSlice.reducer;

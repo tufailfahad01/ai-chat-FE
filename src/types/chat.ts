@@ -4,16 +4,19 @@ export interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
-  timestamp: number;
+  timestamp: string | number;
+  chatId: string;
   sender?: string;
 }
 
 export interface Chat {
   id: string;
-  title: string;
+  title?: string;
+  userId?: string;
   messages: Message[];
-  createdAt: number;
-  lastMessageAt: number;
+  createdAt: string | number;
+
+
 }
 
 export interface Assistant {

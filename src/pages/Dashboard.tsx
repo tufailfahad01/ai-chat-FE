@@ -1,15 +1,16 @@
 import { MessageSquare } from "lucide-react";
 import { AssistantCard } from "../components/assistant-card";
-import { ChatMessage } from "../components/chat-message";
+
 import { ChatSidebar } from "../components/chat-sidebar";
-import { ChatInput } from "../components/chat-input";
+
 import { Assistant, DecodedToken } from "../types/chat";
 import { RootState, useAppDispatch } from "../redux/store/store";
 import { useSelector } from "react-redux";
 import { logout } from "../redux/slice/authSlice";
 import { getDecodedToken } from "../lib/utils";
 import { useEffect, useState } from "react";
-import { getAllChats, setCurrentChat } from "../redux/slice/chatSlice";
+import { getAllChats } from "../redux/slice/chatSlice";
+import { ChatWindow } from "../components/ChatWindow";
 
 const assistants: Assistant[] = [
   {
@@ -55,7 +56,7 @@ function Dashboard() {
   const [chatAssistant, setChatAssistant] = useState<Assistant | null>(null);
   const [loading, setLoading] = useState(false);
   const [createChat, setCreateChat] = useState(false);
-
+console.log("token",token)
   useEffect(() => {
     setLoading(true);
     dispatch(getAllChats())
@@ -110,68 +111,23 @@ function Dashboard() {
               <div className="w-10 h-10 border-4 border-gray-300 border-t-[#260944] rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-4">
-              {currentChat ? (
-                <>
-                  {/* Assistant Cards at the Top */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {assistants.map((assistant) => (
-                      <AssistantCard
-                        key={assistant.id}
-                        assistant={assistant}
-                        isSelected={chatAssistant?.id === assistant.id} // Pass isSelected prop
-                        onSelect={() => handleAssistantSelect(assistant)} // Pass onSelect handler
-                      />
-                    ))}
-                  </div>
-
-                  {/* Chat Messages */}
-                  <div className="space-y-4">
-                    {currentChat.messages.map((message) => (
-                      <ChatMessage key={message.id} message={message} />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                /* No Chat Selected - Show Assistant List */
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">
-                    Choose an Assistant
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {assistants.map((assistant) => (
-                      <AssistantCard
-                        key={assistant.id}
-                        assistant={assistant}
-                        isSelected={chatAssistant?.id === assistant.id} // Pass isSelected prop
-                        onSelect={() => handleAssistantSelect(assistant)} // Pass onSelect handler
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Chat Input */}
-          {/* {createChat && currentChat && (
-            <ChatInput chatId={currentChat.id} chatAssistant={chatAssistant} />
-          )} */}
-          {(currentChat || createChat) && (
-            <ChatInput
-              chatId={currentChat?.id} // Optional: Pass `chatId` if it exists
-              chatAssistant={chatAssistant} // Pass the selected assistant
-              onCreateNewChat={(message) => {
-                // Handle new chat creation here
-                const newChat = {
-                  id: String(chats.length + 1), // Generate a new ID
-                  title: `Chat ${chats.length + 1}`,
-                  messages: [message],
-                  lastMessageAt: new Date().toISOString(),
-                };
-                dispatch(setCurrentChat(newChat.id)); // Set the new chat as current
-              }}
-            />
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {assistants.map((assistant) => (
+                  <AssistantCard
+                    key={assistant.id}
+                    assistant={assistant}
+                    isSelected={chatAssistant?.id === assistant.id} // Pass isSelected prop
+                    onSelect={() => handleAssistantSelect(assistant)} // Pass onSelect handler
+                  />
+                ))}
+              </div>
+              <ChatWindow
+                chatId={currentChat?.id}
+                chatAssistant={chatAssistant}
+                createChat={createChat}
+              />
+            </>
           )}
         </main>
       </div>

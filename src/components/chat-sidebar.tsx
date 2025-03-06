@@ -1,4 +1,3 @@
-
 import React from "react";
 import { MessageSquarePlus, MessagesSquare } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,8 +16,7 @@ export function ChatSidebar({ setCreateChat }: any) {
       <div className="p-4">
         <button
           onClick={() => {
-            setCreateChat(true); 
-
+            setCreateChat(true);
           }}
           className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 transition-colors"
         >
@@ -30,7 +28,9 @@ export function ChatSidebar({ setCreateChat }: any) {
         {chats.map((chat) => (
           <button
             key={chat.id}
-            onClick={() => dispatch(setCurrentChat(chat.id))}
+            onClick={() => {
+              setCreateChat(false), dispatch(setCurrentChat(chat.id));
+            }}
             className={`w-full text-left p-4 flex items-center gap-2 hover:bg-gray-800 transition-colors ${
               chat.id === currentChatId ? "bg-gray-800" : ""
             }`}
